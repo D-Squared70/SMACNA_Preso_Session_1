@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMACNA AI Summit — Session 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Outfit:wght@200;300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090e;
+  --bg-subtle: #0d1017;
+  --text: #eae5da;
+  --text-dim: rgba(234,229,218,0.35);
+  --text-mid: rgba(234,229,218,0.6);
+  --accent: #3dd8c5;
+  --accent-rgb: 61,216,197;
+  --font-display: 'Prata', serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  cursor: default;
+}
+
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(234,229,218,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234,229,218,0.018) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events:none;
+  z-index:0;
+}
+
+#slide-counter {
+  position:fixed;
+  top:36px; right:48px;
+  font-family: var(--font-mono);
+  font-size:13px;
+  font-weight:300;
+  color: var(--text-dim);
+  letter-spacing:2px;
+  z-index:100;
+  transition: color 0.5s;
+}
+
+#chapter-nav {
+  position:fixed;
+  left:40px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:0;
+}
+
+.chapter-item {
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:10px 0;
+  cursor:pointer;
+  transition: all 0.4s ease;
+}
+
+.chapter-dot {
+  width:8px; height:8px;
+  border-radius:50%;
+  background: var(--text-dim);
+  transition: all 0.4s ease;
+  flex-shrink:0;
+}
+
+.chapter-line {
+  width:1px; height:24px;
+  background: rgba(234,229,218,0.08);
+  margin-left:3.5px;
+}
+
+.chapter-label {
+  font-family: var(--font-mono);
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color: rgba(234,229,218,0.0);
+  transition: all 0.4s ease;
+  white-space:nowrap;
+}
+
+.chapter-item:hover .chapter-label { color: var(--text-mid); }
+.chapter-item.active .chapter-dot { background: var(--accent); box-shadow: 0 0 12px var(--accent); transform: scale(1.3); }
+.chapter-item.active .chapter-label { color: var(--accent); }
+.chapter-item.past .chapter-dot { background: var(--text-mid); }
+.chapter-item.past .chapter-label { color: rgba(234,229,218,0.15); }
+
+#slides-wrapper { position:fixed; inset:0; z-index:10; }
+
+.slide {
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  visibility:hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+  padding: 60px 140px 60px 160px;
+}
+
+.slide.active { opacity:1; visibility:visible; }
+
+.slide-content {
+  width:100%;
+  max-width:1100px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+.display-xl { font-family: var(--font-display); font-size:72px; line-height:1.1; letter-spacing:-0.5px; color: var(--text); }
+.display-lg { font-family: var(--font-display); font-size:52px; line-height:1.15; color: var(--text); }
+.display-md { font-family: var(--font-display); font-size:38px; line-height:1.2; color: var(--text); }
+.body-lg { font-family: var(--font-body); font-size:22px; font-weight:300; line-height:1.6; color: var(--text-mid); }
+.body-md { font-family: var(--font-body); font-size:18px; font-weight:300; line-height:1.6; color: var(--text-mid); }
+.mono-sm { font-family: var(--font-mono); font-size:11px; font-weight:400; letter-spacing:2.5px; text-transform:uppercase; color: var(--accent); }
+.accent { color: var(--accent); }
+
+.prompt-block {
+  background: rgba(234,229,218,0.03);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 28px 32px;
+  font-family: var(--font-mono);
+  font-size:15px;
+  font-weight:300;
+  line-height:1.8;
+  color: rgba(234,229,218,0.78);
+  width:100%;
+  max-width:920px;
+}
+.prompt-block .prompt-hl { color: var(--accent); font-weight:500; }
+.prompt-block .prompt-em { color: var(--text); font-weight:400; }
+.prompt-block .pw-what { color: rgba(234,229,218,0.85); font-weight:300; }
+.prompt-block .pw-why { color: #d4604a; font-weight:500; background: rgba(212,96,74,0.08); padding:2px 4px; border-radius:3px; }
+.prompt-block .pw-how { color: #6bb8d4; font-weight:400; border-bottom:1px solid rgba(107,184,212,0.35); }
+.prompt-block .prompt-bullet { display:flex; gap:12px; align-items:flex-start; margin:4px 0; }
+.prompt-block .prompt-bullet::before { content:'\203A'; color: var(--accent); font-weight:500; flex-shrink:0; }
+
+.toggle-row { display:flex; align-items:center; gap:20px; padding:16px 0; }
+.toggle-track { width:48px; height:26px; border-radius:13px; background: rgba(234,229,218,0.1); position:relative; flex-shrink:0; }
+.toggle-track.off { background: var(--accent); }
+.toggle-knob { width:20px; height:20px; border-radius:50%; background: var(--text); position:absolute; top:3px; left:3px; transition: transform 0.4s; }
+.toggle-track.off .toggle-knob { transform:translateX(22px); }
+.toggle-tool-name { font-family: var(--font-body); font-size:20px; font-weight:300; color: var(--text); min-width:120px; }
+.toggle-status { font-family: var(--font-mono); font-size:12px; font-weight:400; letter-spacing:1px; text-transform:uppercase; color: var(--accent); }
+
+.framework-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:40px; width:100%; max-width:960px; }
+.framework-cell { display:flex; flex-direction:column; gap:16px; }
+.framework-num { font-family: var(--font-display); font-size:80px; line-height:1; color: var(--accent); opacity:0.3; }
+.framework-word { font-family: var(--font-display); font-size:36px; color: var(--text); }
+.framework-desc { font-family: var(--font-body); font-size:16px; font-weight:300; line-height:1.5; color: var(--text-mid); }
+
+.model-row { display:flex; gap:32px; width:100%; max-width:1000px; }
+.model-card { flex:1; padding:32px; border-radius:8px; background: rgba(234,229,218,0.025); border:1px solid rgba(234,229,218,0.06); display:flex; flex-direction:column; gap:14px; transition: border-color 0.3s, background 0.3s; }
+.model-card:hover { border-color: rgba(234,229,218,0.12); background: rgba(234,229,218,0.04); }
+.model-name { font-family: var(--font-mono); font-size:14px; font-weight:500; letter-spacing:1px; color: var(--accent); }
+.model-tool { font-family: var(--font-body); font-size:13px; font-weight:400; color: var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; }
+.model-strength { font-family: var(--font-display); font-size:24px; color: var(--text); line-height:1.2; }
+
+.safety-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:36px; width:100%; max-width:960px; }
+.safety-item { display:flex; flex-direction:column; gap:16px; padding:32px; border-radius:8px; background: rgba(234,229,218,0.025); border-top:2px solid var(--accent); }
+.safety-num { font-family: var(--font-mono); font-size:12px; letter-spacing:2px; color: var(--accent); }
+.safety-title { font-family: var(--font-display); font-size:26px; color: var(--text); }
+.safety-desc { font-family: var(--font-body); font-size:15px; font-weight:300; line-height:1.6; color: var(--text-mid); }
+
+.feature-tile-row { display:grid; grid-template-columns: repeat(3,1fr); gap:24px; width:100%; max-width:960px; }
+.feature-tile { padding:28px; border-radius:8px; background: rgba(234,229,218,0.025); border:1px solid rgba(234,229,218,0.06); display:flex; flex-direction:column; gap:12px; }
+.feature-icon { font-size:28px; filter: grayscale(0.3); }
+.feature-name { font-family: var(--font-display); font-size:22px; color: var(--text); }
+.feature-desc { font-family: var(--font-body); font-size:14px; font-weight:300; color: var(--text-mid); line-height:1.5; }
+
+.tier-visual { display:flex; gap:36px; width:100%; max-width:700px; align-items:stretch; }
+.tier-box { flex:1; padding:32px; border-radius:8px; display:flex; flex-direction:column; gap:14px; }
+.tier-box.personal { background: rgba(234,229,218,0.025); border:1px solid rgba(234,229,218,0.08); }
+.tier-box.business { background: rgba(61,216,197,0.06); border:1px solid rgba(61,216,197,0.18); }
+.tier-icon { font-size:32px; }
+.tier-label { font-family: var(--font-display); font-size:22px; color: var(--text); }
+.tier-detail { font-family: var(--font-body); font-size:14px; font-weight:300; color: var(--text-mid); line-height:1.5; }
+.tier-badge { font-family: var(--font-mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color: var(--accent); padding:4px 10px; border:1px solid var(--accent); border-radius:3px; display:inline-block; align-self:flex-start; }
+
+.naming-row { display:flex; gap:28px; width:100%; max-width:860px; }
+.naming-item { flex:1; text-align:center; padding:24px; border-radius:8px; background: rgba(234,229,218,0.025); border:1px solid rgba(234,229,218,0.06); }
+.naming-tool { font-family: var(--font-mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--text-dim); margin-bottom:10px; }
+.naming-name { font-family: var(--font-display); font-size:24px; color: var(--text); }
+
+.canvas-visual { display:flex; gap:4px; width:100%; max-width:740px; height:300px; border-radius:10px; overflow:hidden; border:1px solid rgba(234,229,218,0.08); }
+.canvas-left { flex:1; background: rgba(234,229,218,0.025); padding:24px; display:flex; flex-direction:column; gap:10px; }
+.canvas-right { flex:1.2; background: rgba(var(--accent-rgb),0.05); border-left:2px solid var(--accent); padding:24px; display:flex; flex-direction:column; gap:10px; }
+.canvas-line { height:8px; border-radius:4px; background: rgba(234,229,218,0.06); }
+.canvas-line.short { width:60%; }
+.canvas-line.med { width:80%; }
+.canvas-line.long { width:95%; }
+.canvas-line.accent-line { background: rgba(var(--accent-rgb),0.15); }
+.canvas-label { font-family: var(--font-mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color: var(--text-dim); margin-bottom:8px; }
+.canvas-label.accent-label { color: var(--accent); }
+
+.voice-visual { display:flex; align-items:center; gap:12px; margin:24px 0; }
+.voice-bar { width:4px; border-radius:2px; background: var(--accent); animation: voicePulse 1.2s ease-in-out infinite; }
+@keyframes voicePulse { 0%,100% { height:16px; opacity:0.3; } 50% { height:48px; opacity:1; } }
+
+.step-label { font-family: var(--font-mono); font-size:12px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color: var(--accent); margin-bottom:16px; display:inline-block; padding:4px 12px; border:1px solid rgba(var(--accent-rgb),0.25); border-radius:3px; }
+
+.exercise-setup { display:flex; flex-direction:column; align-items:center; gap:28px; width:100%; }
+.qr-placeholder { width:200px; height:200px; border:2px solid rgba(234,229,218,0.12); border-radius:12px; display:flex; align-items:center; justify-content:center; font-family: var(--font-mono); font-size:14px; color: var(--text-dim); background: rgba(234,229,218,0.02); }
+.short-link { font-family: var(--font-mono); font-size:24px; font-weight:500; color: var(--accent); letter-spacing:1px; }
+
+.research-spectrum { width:100%; max-width:800px; display:flex; flex-direction:column; gap:40px; }
+.spectrum-track { position:relative; width:100%; height:4px; background: rgba(234,229,218,0.08); border-radius:2px; margin: 16px 0 20px; }
+.spectrum-fill { position:absolute; left:0; top:0; height:100%; width:100%; border-radius:2px; background: linear-gradient(90deg, rgba(var(--accent-rgb),0.2), var(--accent)); }
+.spectrum-labels { display:flex; justify-content:space-between; width:100%; }
+.spectrum-end { display:flex; flex-direction:column; gap:8px; max-width:320px; }
+.spectrum-end.right { text-align:right; align-items:flex-end; }
+.spectrum-end-title { font-family: var(--font-display); font-size:24px; color: var(--text); }
+.spectrum-end-desc { font-family: var(--font-body); font-size:15px; font-weight:300; color: var(--text-mid); line-height:1.5; }
+.spectrum-end-mono { font-family: var(--font-mono); font-size:11px; letter-spacing:1.5px; color: var(--accent); text-transform:uppercase; }
+
+.recap-list { display:flex; flex-direction:column; gap:4px; width:100%; max-width:860px; }
+.recap-item { display:flex; align-items:flex-start; gap:20px; padding:10px 0; opacity:0.12; transition: opacity 0.5s ease; }
+.recap-item.visible { opacity:0.25; }
+.recap-item.current { opacity:1; }
+.recap-num { font-family: var(--font-display); font-size:28px; color: var(--accent); flex-shrink:0; min-width:36px; }
+.recap-text { font-family: var(--font-body); font-size:20px; font-weight:300; color: var(--text); line-height:1.35; padding-top:4px; }
+
+.next-session-topics { display:flex; gap:32px; width:100%; max-width:720px; margin-top:8px; }
+.next-topic { flex:1; padding:24px; border-radius:8px; background: rgba(234,229,218,0.025); border:1px solid rgba(234,229,218,0.06); text-align:center; }
+.next-topic-name { font-family: var(--font-display); font-size:20px; color: var(--text); }
+
+.slide svg { overflow:visible; }
+
+.slide-content > * {
+  opacity:0;
+  transform:translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.slide.active .slide-content > * { opacity:1; transform:translateY(0); }
+.slide.active .slide-content > *:nth-child(1) { transition-delay:0.1s; }
+.slide.active .slide-content > *:nth-child(2) { transition-delay:0.2s; }
+.slide.active .slide-content > *:nth-child(3) { transition-delay:0.25s; }
+.slide.active .slide-content > *:nth-child(4) { transition-delay:0.3s; }
+.slide.active .slide-content > *:nth-child(5) { transition-delay:0.35s; }
+.slide.active .slide-content > *:nth-child(6) { transition-delay:0.4s; }
+
+#progress-bar {
+  position:fixed;
+  bottom:0; left:0;
+  height:2px;
+  background: var(--accent);
+  transition: width 0.5s ease, background 0.5s ease;
+  z-index:100;
+}
+</style>
+</head>
+<body>
+
+<div id="slide-counter"></div>
+<div id="progress-bar"></div>
+<nav id="chapter-nav"></nav>
+
+<div id="slides-wrapper">
+
+<!-- CHAPTER 1: SECURITY -->
+
+<div class="slide" data-chapter="0">
+  <div class="slide-content">
+    <span class="mono-sm">The reality</span>
+    <div style="height:20px"></div>
+    <div class="display-md" style="max-width:680px;">Every tool lets you turn training off.</div>
+    <div style="height:40px"></div>
+    <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:480px;">
+      <div class="toggle-row">
+        <span class="toggle-tool-name">ChatGPT</span>
+        <div class="toggle-track off"><div class="toggle-knob"></div></div>
+        <span class="toggle-status">Training off</span>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-tool-name">Claude</span>
+        <div class="toggle-track off"><div class="toggle-knob"></div></div>
+        <span class="toggle-status">Training off</span>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-tool-name">Gemini</span>
+        <div class="toggle-track off"><div class="toggle-knob"></div></div>
+        <span class="toggle-status">Training off</span>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-tool-name">Copilot</span>
+        <div class="toggle-track off"><div class="toggle-knob"></div></div>
+        <span class="toggle-status">Training off</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="0">
+  <div class="slide-content">
+    <span class="mono-sm">Account types matter</span>
+    <div style="height:24px"></div>
+    <div class="tier-visual">
+      <div class="tier-box personal">
+        <div class="tier-icon">&#x1F513;</div>
+        <div class="tier-label">Personal</div>
+        <div class="tier-detail">Training on by default. You must manually turn it off in settings.</div>
+      </div>
+      <div class="tier-box business">
+        <div class="tier-icon">&#x1F512;</div>
+        <div class="tier-label">Business</div>
+        <div class="tier-detail">Stronger protections built in. Still verify the setting is disabled.</div>
+        <div class="tier-badge">Recommended</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="0">
+  <div class="slide-content" style="align-items:center; text-align:center;">
+    <div class="display-lg" style="max-width:700px;">Check with IT.<br><span class="accent">Turn off training.</span></div>
+  </div>
+</div>
+
+<!-- CHAPTER 2: FEATURES -->
+
+<div class="slide" data-chapter="1">
+  <div class="slide-content" style="align-items:center; text-align:center;">
+    <span class="mono-sm">Different tasks, different models</span>
+    <div style="height:32px"></div>
+    <svg viewBox="0 0 700 200" width="700" style="max-width:100%;">
+      <rect x="40" y="80" width="80" height="80" rx="6" fill="rgba(234,229,218,0.04)" stroke="rgba(234,229,218,0.1)" stroke-width="1"/>
+      <text x="80" y="128" fill="rgba(234,229,218,0.5)" font-family="Outfit" font-size="13" font-weight="300" text-anchor="middle">Quick email</text>
+      <text x="80" y="55" fill="rgba(234,229,218,0.3)" font-family="IBM Plex Mono" font-size="10" text-anchor="middle" letter-spacing="1.5">DEFAULT</text>
+      <rect x="250" y="50" width="120" height="110" rx="6" fill="rgba(234,229,218,0.04)" stroke="rgba(234,229,218,0.1)" stroke-width="1"/>
+      <text x="310" y="112" fill="rgba(234,229,218,0.5)" font-family="Outfit" font-size="13" font-weight="300" text-anchor="middle">Research task</text>
+      <text x="310" y="35" fill="rgba(234,229,218,0.3)" font-family="IBM Plex Mono" font-size="10" text-anchor="middle" letter-spacing="1.5">REASONING</text>
+      <rect x="490" y="20" width="160" height="140" rx="6" fill="rgba(212,160,60,0.06)" stroke="rgba(212,160,60,0.2)" stroke-width="1"/>
+      <text x="570" y="100" fill="rgba(234,229,218,0.7)" font-family="Outfit" font-size="14" font-weight="400" text-anchor="middle">Contract review</text>
+      <text x="570" y="10" fill="rgba(212,160,60,0.7)" font-family="IBM Plex Mono" font-size="10" text-anchor="middle" letter-spacing="1.5">BEST MODEL</text>
+    </svg>
+  </div>
+</div>
+
+<div class="slide" data-chapter="1">
+  <div class="slide-content">
+    <span class="mono-sm">The leading models</span>
+    <div style="height:24px"></div>
+    <div class="model-row">
+      <div class="model-card">
+        <div class="model-tool">ChatGPT</div>
+        <div class="model-name">GPT 5.4</div>
+        <div class="model-strength">Web research</div>
+      </div>
+      <div class="model-card">
+        <div class="model-tool">Claude</div>
+        <div class="model-name">Opus 4.6</div>
+        <div class="model-strength">Writing quality</div>
+      </div>
+      <div class="model-card">
+        <div class="model-tool">Gemini</div>
+        <div class="model-name">3.1 Pro</div>
+        <div class="model-strength">Complex PDFs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="1">
+  <div class="slide-content" style="align-items:center;text-align:center;">
+    <span class="mono-sm">Web search</span>
+    <div style="height:28px"></div>
+    <svg viewBox="0 0 120 120" width="120">
+      <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(212,160,60,0.25)" stroke-width="1"/>
+      <circle cx="60" cy="60" r="32" fill="none" stroke="rgba(212,160,60,0.15)" stroke-width="1"/>
+      <circle cx="60" cy="60" r="16" fill="none" stroke="rgba(212,160,60,0.1)" stroke-width="1"/>
+      <ellipse cx="60" cy="60" rx="12" ry="48" fill="none" stroke="rgba(212,160,60,0.15)" stroke-width="1"/>
+      <line x1="12" y1="60" x2="108" y2="60" stroke="rgba(212,160,60,0.12)" stroke-width="1"/>
+      <circle cx="60" cy="60" r="4" fill="rgba(212,160,60,0.8)"/>
+    </svg>
+    <div style="height:28px"></div>
+    <div class="display-md">AI searches the internet<br>in <span class="accent">real time</span></div>
+    <div style="height:16px"></div>
+    <div class="body-md">Prices. Codes. Regulations. Anything that changes.</div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="1">
+  <div class="slide-content">
+    <span class="mono-sm">Canvas &amp; Artifacts</span>
+    <div style="height:24px"></div>
+    <div class="display-md" style="max-width:640px;">Edit in place. No starting over.</div>
+    <div style="height:32px"></div>
+    <div class="canvas-visual">
+      <div class="canvas-left">
+        <div class="canvas-label">Conversation</div>
+        <div class="canvas-line long"></div>
+        <div class="canvas-line med"></div>
+        <div class="canvas-line short"></div>
+        <div class="canvas-line long"></div>
+        <div class="canvas-line med"></div>
+        <div class="canvas-line short"></div>
+        <div class="canvas-line long"></div>
+      </div>
+      <div class="canvas-right">
+        <div class="canvas-label accent-label">Canvas / Artifact</div>
+        <div class="canvas-line long accent-line"></div>
+        <div class="canvas-line long accent-line"></div>
+        <div class="canvas-line med accent-line"></div>
+        <div class="canvas-line long accent-line"></div>
+        <div class="canvas-line short accent-line"></div>
+        <div class="canvas-line long accent-line"></div>
+        <div class="canvas-line med accent-line"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="1">
+  <div class="slide-content">
+    <span class="mono-sm">Power features</span>
+    <div style="height:24px"></div>
+    <div class="feature-tile-row">
+      <div class="feature-tile">
+        <div class="feature-icon">&#x1F9E0;</div>
+        <div class="feature-name">Reasoning</div>
+        <div class="feature-desc">AI thinks harder before answering. Use for contracts, specs, cost comparisons.</div>
+      </div>
+      <div class="feature-tile">
+        <div class="feature-icon">&#x1F4CE;</div>
+        <div class="feature-name">File Uploads</div>
+        <div class="feature-desc">PDFs, spreadsheets, images, drawings. Drag in &mdash; AI reads it.</div>
+      </div>
+      <div class="feature-tile">
+        <div class="feature-icon">&#x1F50C;</div>
+        <div class="feature-name">Connectors</div>
+        <div class="feature-desc">Link email, calendar, cloud storage, CRM. Read-only by default.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="1">
+  <div class="slide-content" style="align-items:center; text-align:center;">
+    <span class="mono-sm">Dictation</span>
+    <div style="height:32px"></div>
+    <div class="voice-visual">
+      <div class="voice-bar" style="animation-delay:0s; height:20px;"></div>
+      <div class="voice-bar" style="animation-delay:0.15s; height:32px;"></div>
+      <div class="voice-bar" style="animation-delay:0.3s; height:44px;"></div>
+      <div class="voice-bar" style="animation-delay:0.45s; height:56px;"></div>
+      <div class="voice-bar" style="animation-delay:0.55s; height:44px;"></div>
+      <div class="voice-bar" style="animation-delay:0.65s; height:56px;"></div>
+      <div class="voice-bar" style="animation-delay:0.8s; height:40px;"></div>
+      <div class="voice-bar" style="animation-delay:0.9s; height:28px;"></div>
+      <div class="voice-bar" style="animation-delay:1.0s; height:16px;"></div>
+    </div>
+    <div style="height:28px"></div>
+    <div class="display-md">Talk instead of type.</div>
+    <div style="height:16px"></div>
+    <div class="body-lg" style="max-width:520px;">When you talk, you give AI <span class="accent">more context</span>. More context means better results.</div>
+  </div>
+</div>
+
+<!-- CHAPTER 3: PROMPTING -->
+
+<div class="slide" data-chapter="2">
+  <div class="slide-content" style="align-items:center;">
+    <span class="mono-sm">The prompting problem</span>
+    <div style="height:32px"></div>
+    <!-- Row 1: Vague -->
+    <div style="display:flex;align-items:center;gap:28px;width:100%;max-width:820px;opacity:0.55;">
+      <div style="flex:1;padding:20px 24px;border:1px dashed rgba(234,229,218,0.15);border-radius:6px;">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Input</div>
+        <div style="font-family:var(--font-body);font-size:16px;font-weight:300;color:rgba(234,229,218,0.7);">&ldquo;Write me an email about a delay.&rdquo;</div>
+      </div>
+      <div style="font-size:20px;color:rgba(234,229,218,0.4);flex-shrink:0;">&rarr;</div>
+      <div style="flex:1;padding:20px 24px;border:1px dashed rgba(234,229,218,0.15);border-radius:6px;">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Output</div>
+        <div style="font-family:var(--font-body);font-size:16px;font-weight:300;color:rgba(234,229,218,0.5);">Generic. Could be from anyone.</div>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+    <!-- Row 2: Specific -->
+    <div style="display:flex;align-items:center;gap:28px;width:100%;max-width:820px;">
+      <div style="flex:1;padding:20px 24px;border:1px solid rgba(var(--accent-rgb),0.25);border-radius:6px;background:rgba(var(--accent-rgb),0.03);">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Input</div>
+        <div style="font-family:var(--font-body);font-size:16px;font-weight:400;color:var(--text);">What + Why + How</div>
+      </div>
+      <div style="font-size:20px;color:var(--accent);flex-shrink:0;">&rarr;</div>
+      <div style="flex:1;padding:20px 24px;border:1px solid rgba(var(--accent-rgb),0.25);border-radius:6px;background:rgba(var(--accent-rgb),0.03);">
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;">Output</div>
+        <div style="font-family:var(--font-body);font-size:16px;font-weight:400;color:var(--text);">Specific. Professional. Useful.</div>
+      </div>
+    </div>
+    <div style="height:24px"></div>
+    <div class="body-lg" style="text-align:center;">AI gravitates toward the <span class="accent">average</span>. Specificity pulls it up.</div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="2">
+  <div class="slide-content">
+    <span class="mono-sm">The framework</span>
+    <div style="height:28px"></div>
+    <div class="framework-grid">
+      <div class="framework-cell">
+        <div class="framework-num">1</div>
+        <div class="framework-word">What</div>
+        <div class="framework-desc">What are you asking AI to do? Be specific &mdash; task, audience, reason.</div>
+      </div>
+      <div class="framework-cell">
+        <div class="framework-num">2</div>
+        <div class="framework-word">Why</div>
+        <div class="framework-desc">What is the intent? When AI knows why, it infers what you left unsaid.</div>
+      </div>
+      <div class="framework-cell">
+        <div class="framework-num">3</div>
+        <div class="framework-word">How</div>
+        <div class="framework-desc">Constraints &mdash; tone, length, structure, format.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="2">
+  <div class="slide-content">
+    <span class="mono-sm">The full prompt</span>
+    <div style="height:20px"></div>
+    <div class="prompt-block"><span class="pw-what">Write an email to the general contractor explaining that we are two weeks behind on the third-floor ductwork because the fire dampers were back-ordered.</span> <span class="pw-why">The intent is to push back professionally on their demand that we work weekends to catch up, since we notified them three weeks ago.</span> <span class="pw-how">Keep it professional but direct. Under 200 words. Include a proposed revised schedule.</span></div>
+    <div style="height:24px"></div>
+    <div style="display:flex;gap:28px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:rgba(234,229,218,0.85);display:inline-block;"></span>
+        <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;color:rgba(234,229,218,0.6);">WHAT</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#d4604a;display:inline-block;"></span>
+        <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;color:rgba(212,96,74,0.8);">WHY</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#6bb8d4;display:inline-block;"></span>
+        <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:1.5px;color:rgba(107,184,212,0.8);">HOW</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="2">
+  <div class="slide-content">
+    <span class="mono-sm">The prompt improver trick</span>
+    <div style="height:20px"></div>
+    <div class="display-md" style="max-width:640px;margin-bottom:28px;">Let AI improve <span class="accent">your prompt.</span></div>
+    <div class="prompt-block">I&rsquo;m using <span class="prompt-hl">[model name &mdash; e.g. GPT 5.4]</span>. Research the best practices for prompting this specific model as of <span class="prompt-hl">[today&rsquo;s date]</span>.<br><br>Here is my base prompt:<br><span class="prompt-em">&quot;[your rough prompt]&quot;</span><br><br>My intent: <span class="prompt-em">[what you&rsquo;re trying to accomplish]</span><br><br>After your research, improve this prompt for that model. Make sure the improved prompt is <span class="prompt-hl">information-dense &mdash; not too wordy</span>.</div>
+  </div>
+</div>
+
+<!-- CHAPTER 4: PROJECTS -->
+
+<div class="slide" data-chapter="3">
+  <div class="slide-content" style="align-items:center;">
+    <span class="mono-sm">Projects</span>
+    <div style="height:28px"></div>
+    <div class="display-lg" style="text-align:center;max-width:600px;">Train once.<br><span class="accent">Use forever.</span></div>
+    <div style="height:40px"></div>
+    <div class="naming-row">
+      <div class="naming-item">
+        <div class="naming-tool">ChatGPT</div>
+        <div class="naming-name">Project</div>
+      </div>
+      <div class="naming-item">
+        <div class="naming-tool">Claude</div>
+        <div class="naming-name">Project</div>
+      </div>
+      <div class="naming-item">
+        <div class="naming-tool">Gemini</div>
+        <div class="naming-name">Gem</div>
+      </div>
+      <div class="naming-item">
+        <div class="naming-tool">Copilot</div>
+        <div class="naming-name">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="3">
+  <div class="slide-content">
+    <span class="mono-sm">Example: HVAC Email Writer</span>
+    <div style="height:20px"></div>
+    <div class="prompt-block" style="font-size:14px;line-height:1.75;">You are an email assistant for a project manager at an HVAC sheet metal company. When I give you rough notes or a summary of a situation, write a professional email. Follow these rules:<br><br><div class="prompt-bullet"><span class="prompt-em">Always include a clear subject line.</span></div><div class="prompt-bullet"><span class="prompt-em">Keep the email under 200 words.</span></div><div class="prompt-bullet"><span class="prompt-em">Bias towards clarity. Direct tone, every sentence earns its place.</span></div><div class="prompt-bullet"><span class="prompt-em">If I mention a deadline or date, put it in bold.</span></div><div class="prompt-bullet"><span class="prompt-em">If I mention a problem, include a proposed next step.</span></div><div class="prompt-bullet"><span class="prompt-em">End with a clear call to action.</span></div></div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="3">
+  <div class="slide-content" style="align-items:center;text-align:center;">
+    <span class="mono-sm">Memory</span>
+    <div style="height:28px"></div>
+    <div class="display-md" style="max-width:640px;">AI picks up on your <span class="accent">patterns</span> over time.</div>
+  </div>
+</div>
+
+<!-- CHAPTER 5: EXERCISE -->
+
+<div class="slide" data-chapter="4">
+  <div class="slide-content" style="align-items:center;">
+    <span class="mono-sm">Hands-on exercise</span>
+    <div style="height:32px"></div>
+    <div class="exercise-setup">
+      <img src="elegant_qr_drive_folder.png" alt="QR Code" style="width:200px;height:200px;border-radius:12px;object-fit:contain;">
+      <div style="height:8px"></div>
+      <div style="display:flex;gap:24px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+          <span class="body-md" style="color:var(--text);">HVAC spec input file</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+          <span class="body-md" style="color:var(--text);">Prompt</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="4">
+  <div class="slide-content">
+    <div class="step-label">Step 1</div>
+    <div class="prompt-block" style="font-size:14px;line-height:1.75;">Extract every requirement from this specification into a numbered checklist with these columns: <span class="prompt-em">Requirement</span>, <span class="prompt-em">Mandatory or Recommended</span>, and <span class="prompt-em">Evidence</span> (quote the exact text from the spec that supports your answer). <span class="prompt-hl">Only pull information from this document. Do not infer or guess.</span> If something is unclear, mark it as <span class="prompt-hl">AMBIGUOUS</span>. <span class="prompt-hl">A wrong answer is three times worse than a blank or ambiguous answer.</span></div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="4">
+  <div class="slide-content">
+    <div class="step-label">Step 2</div>
+    <div class="prompt-block" style="font-size:15px;line-height:1.8;">Now find any requirements that <span class="prompt-hl">conflict with each other</span> or that a contractor might <span class="prompt-hl">commonly miss</span>. For each one, cite the page or section number and quote the relevant text.</div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="4">
+  <div class="slide-content">
+    <span class="mono-sm">Three rules for extraction</span>
+    <div style="height:24px"></div>
+    <div class="safety-grid">
+      <div class="safety-item">
+        <div class="safety-num">01</div>
+        <div class="safety-title">Ground it</div>
+        <div class="safety-desc">Only pull from this document. Do not guess. Do not infer.</div>
+      </div>
+      <div class="safety-item">
+        <div class="safety-num">02</div>
+        <div class="safety-title">Change incentives</div>
+        <div class="safety-desc">A wrong answer is 3&times; worse than blank. AI would rather say &ldquo;I don&rsquo;t know.&rdquo;</div>
+      </div>
+      <div class="safety-item">
+        <div class="safety-num">03</div>
+        <div class="safety-title">Ask for evidence</div>
+        <div class="safety-desc">Quote the text. Give the page number. You can audit in seconds.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAPTER 6: RESEARCH -->
+
+<div class="slide" data-chapter="5">
+  <div class="slide-content">
+    <span class="mono-sm">AI Research</span>
+    <div style="height:24px"></div>
+    <div class="display-md" style="max-width:700px;margin-bottom:36px;">Same research. Different <span class="accent">depth.</span></div>
+    <div class="research-spectrum">
+      <div class="spectrum-labels">
+        <div class="spectrum-end">
+          <div class="spectrum-end-mono">Fast model</div>
+          <div class="spectrum-end-title">Quick check</div>
+          <div class="spectrum-end-desc">Good for routine lookups where stakes are low.</div>
+        </div>
+        <div class="spectrum-end right">
+          <div class="spectrum-end-mono">Reasoning model</div>
+          <div class="spectrum-end-title">Thorough answer</div>
+          <div class="spectrum-end-desc">Good for decisions where accuracy matters.</div>
+        </div>
+      </div>
+      <div class="spectrum-track">
+        <div class="spectrum-fill" style="width:100%;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);text-transform:uppercase;">
+        <span>Speed</span>
+        <span>Accuracy</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAPTER 7: RECAP -->
+
+<div class="slide" data-chapter="6" id="recap-slide">
+  <div class="slide-content">
+    <span class="mono-sm">What you learned today</span>
+    <div style="height:16px"></div>
+    <div class="recap-list" id="recap-list">
+      <div class="recap-item" data-recap="0">
+        <div class="recap-num">1</div>
+        <div class="recap-text">AI is safe if you check settings and follow company policy. Turn off model training on every tool.</div>
+      </div>
+      <div class="recap-item" data-recap="1">
+        <div class="recap-num">2</div>
+        <div class="recap-text">All major tools share core features &mdash; web search, file uploads, dictation, canvas, reasoning, connectors.</div>
+      </div>
+      <div class="recap-item" data-recap="2">
+        <div class="recap-num">3</div>
+        <div class="recap-text">Good results come from good input. Use the What&ndash;Why&ndash;How framework every time.</div>
+      </div>
+      <div class="recap-item" data-recap="3">
+        <div class="recap-num">4</div>
+        <div class="recap-text">Projects save your instructions so AI remembers how to work for you.</div>
+      </div>
+      <div class="recap-item" data-recap="4">
+        <div class="recap-num">5</div>
+        <div class="recap-text">For document extraction: ground it, change incentives, ask for evidence.</div>
+      </div>
+      <div class="recap-item" data-recap="5">
+        <div class="recap-num">6</div>
+        <div class="recap-text">Use reasoning models for anything that needs trust. Pick the right depth for the job.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-chapter="6" id="next-session-slide">
+  <div class="slide-content" style="align-items:center;text-align:center;">
+    <span class="mono-sm">Foreman Session &mdash; 4:00 PM</span>
+    <div style="height:28px"></div>
+    <div class="display-md" style="max-width:640px;">Build three tools you can use<br><span class="accent">on the job site tomorrow.</span></div>
+    <div style="height:40px"></div>
+    <div class="next-session-topics">
+      <div class="next-topic">
+        <div class="next-topic-name">Material Orders</div>
+      </div>
+      <div class="next-topic">
+        <div class="next-topic-name">Diffuser Takeoffs</div>
+      </div>
+      <div class="next-topic">
+        <div class="next-topic-name">RFI Creator</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+(function(){
+
+  var chapters = [
+    { name:'Security',  accent:'#3dd8c5', accentRGB:'61,216,197' },
+    { name:'Features',  accent:'#d4a03c', accentRGB:'212,160,60' },
+    { name:'Prompting', accent:'#d4604a', accentRGB:'212,96,74' },
+    { name:'Projects',  accent:'#4a8cd4', accentRGB:'74,140,212' },
+    { name:'Exercise',  accent:'#4ab876', accentRGB:'74,184,118' },
+    { name:'Research',  accent:'#8a6ad4', accentRGB:'138,106,212' },
+    { name:'Recap',     accent:'#d4b44a', accentRGB:'212,180,74' }
+  ];
+
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var current = 0;
+
+  var recapIndex = -1;
+  var recapItems = document.querySelectorAll('.recap-item');
+  var RECAP_COUNT = recapItems.length;
+
+  var nav = document.getElementById('chapter-nav');
+  chapters.forEach(function(ch, i) {
+    if(i > 0) {
+      var line = document.createElement('div');
+      line.className = 'chapter-line';
+      nav.appendChild(line);
+    }
+    var item = document.createElement('div');
+    item.className = 'chapter-item';
+    item.dataset.chapter = i;
+    item.innerHTML = '<div class="chapter-dot"></div><div class="chapter-label">' + ch.name + '</div>';
+    item.addEventListener('click', function() {
+      var firstSlide = slides.findIndex(function(s) { return parseInt(s.dataset.chapter) === i; });
+      if(firstSlide !== -1) goTo(firstSlide);
+    });
+    nav.appendChild(item);
+  });
+
+  function getChapter(idx) { return parseInt(slides[idx].dataset.chapter); }
+
+  function setAccent(chIdx) {
+    var ch = chapters[chIdx];
+    document.documentElement.style.setProperty('--accent', ch.accent);
+    document.documentElement.style.setProperty('--accent-rgb', ch.accentRGB);
+  }
+
+  function updateNav(chIdx) {
+    document.querySelectorAll('.chapter-item').forEach(function(item, i) {
+      item.classList.remove('active','past');
+      if(i === chIdx) item.classList.add('active');
+      else if(i < chIdx) item.classList.add('past');
+    });
+  }
+
+  function isRecapSlide(idx) { return slides[idx].id === 'recap-slide'; }
+
+  function updateRecap() {
+    recapItems.forEach(function(item, i) {
+      item.classList.remove('current','visible');
+      if(i < recapIndex) item.classList.add('visible');
+      else if(i === recapIndex) item.classList.add('current');
+    });
+  }
+
+  function goTo(idx) {
+    if(idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+
+    var ch = getChapter(current);
+    setAccent(ch);
+    updateNav(ch);
+
+    document.getElementById('slide-counter').textContent = (current+1) + ' / ' + total;
+    document.getElementById('progress-bar').style.width = (((current+1)/total)*100) + '%';
+
+    if(isRecapSlide(current)) {
+      recapIndex = -1;
+      updateRecap();
+    }
+  }
+
+  function next() {
+    if(isRecapSlide(current) && recapIndex < RECAP_COUNT - 1) {
+      recapIndex++;
+      updateRecap();
+      return;
+    }
+    if(current < total - 1) goTo(current + 1);
+  }
+
+  function prev() {
+    if(isRecapSlide(current) && recapIndex >= 0) {
+      recapIndex--;
+      updateRecap();
+      return;
+    }
+    if(current > 0) goTo(current - 1);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+  });
+
+  goTo(0);
+
+})();
+</script>
+</body>
+</html>
